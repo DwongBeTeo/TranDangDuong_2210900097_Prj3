@@ -12,8 +12,6 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.json.JSONObject;
-
 import com.example.constructor.CartItem;
 
 import User.DAO.CartDAO;
