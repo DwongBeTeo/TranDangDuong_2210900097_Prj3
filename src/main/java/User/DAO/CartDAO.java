@@ -27,6 +27,40 @@ public class CartDAO {
         return false;
     }
 
+ // Sửa phương thức removeFromCart
+    public void removeFromCart(int maGioHang, int maMay) throws SQLException {
+        String selectSQL = "SELECT SoLuong FROM CHI_TIET_GIO_HANG WHERE MaGioHang = ? AND MaMay = ?";
+        String updateSQL = "UPDATE CHI_TIET_GIO_HANG SET SoLuong = SoLuong - 1 WHERE MaGioHang = ? AND MaMay = ?";
+        String deleteSQL = "DELETE FROM CHI_TIET_GIO_HANG WHERE MaGioHang = ? AND MaMay = ?";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            // Kiểm tra số lượng hiện tại
+            try (PreparedStatement selectStmt = conn.prepareStatement(selectSQL)) {
+                selectStmt.setInt(1, maGioHang);
+                selectStmt.setInt(2, maMay);
+                ResultSet rs = selectStmt.executeQuery();
+                if (rs.next()) {
+                    int currentQuantity = rs.getInt("SoLuong");
+                    if (currentQuantity > 1) {
+                        // Giảm số lượng đi 1 nếu > 1
+                        try (PreparedStatement updateStmt = conn.prepareStatement(updateSQL)) {
+                            updateStmt.setInt(1, maGioHang);
+                            updateStmt.setInt(2, maMay);
+                            updateStmt.executeUpdate();
+                        }
+                    } else if(currentQuantity == 1) {
+                        // Xóa dòng nếu số lượng = 1
+                        try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSQL)) {
+                            deleteStmt.setInt(1, maGioHang);
+                            deleteStmt.setInt(2, maMay);
+                            deleteStmt.executeUpdate();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public int createCart(Integer maKH) throws SQLException {
         String sql = "INSERT INTO GIO_HANG (MaKH) VALUES (?)";
         try (Connection conn = DBConnection.getConnection();
@@ -47,6 +81,10 @@ public class CartDAO {
     }
 
     public void addToCart(int maGioHang, int maMay, int soLuong) throws SQLException {
+        // Kiểm tra tồn kho trước khi thêm
+        if (!checkStock(maMay, soLuong)) {
+            throw new SQLException("Sản phẩm " + maMay + " không đủ tồn kho!");
+        }
         String sql = "INSERT INTO CHI_TIET_GIO_HANG (MaGioHang, MaMay, SoLuong) VALUES (?, ?, ?)"
                    + " ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?";
         try (Connection conn = DBConnection.getConnection();
@@ -58,15 +96,39 @@ public class CartDAO {
             stmt.executeUpdate();
         }
     }
-    
-    //để xóa giỏ hàng sau khi thanh toán
+
     public void clearCart(int maGioHang) throws SQLException {
-        String sql = "DELETE FROM CHI_TIET_GIO_HANG WHERE MaGioHang = ?; DELETE FROM GIO_HANG WHERE MaGioHang = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, maGioHang);
-            stmt.setInt(2, maGioHang);
-            stmt.executeUpdate();
+        Connection conn = null;
+        PreparedStatement stmtDetails = null;
+        PreparedStatement stmtCart = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            String deleteDetailsSQL = "DELETE FROM CHI_TIET_GIO_HANG WHERE MaGioHang = ?";
+            stmtDetails = conn.prepareStatement(deleteDetailsSQL);
+            stmtDetails.setInt(1, maGioHang);
+            stmtDetails.executeUpdate();
+
+            String deleteCartSQL = "DELETE FROM GIO_HANG WHERE MaGioHang = ?";
+            stmtCart = conn.prepareStatement(deleteCartSQL);
+            stmtCart.setInt(1, maGioHang);
+            stmtCart.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (stmtDetails != null) stmtDetails.close();
+            if (stmtCart != null) stmtCart.close();
+            if (conn != null) conn.close();
         }
     }
 

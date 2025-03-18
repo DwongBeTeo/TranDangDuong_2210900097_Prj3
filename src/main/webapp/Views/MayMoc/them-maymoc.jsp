@@ -22,7 +22,7 @@
         <p class="text-success">Thêm máy móc thành công!</p>
     <% } %>
 
-    <form action="/TranDangDuong_2210900097_Prj3/ThemMayMocServlet" method="post">
+    <form action="/ThemMayMocServlet" method="post">
         <div class="mb-3">
             <label class="form-label">Tên Máy:</label>
             <input type="text" name="tenMay" value="<%= mayMoc != null ? mayMoc.getTenMay() : "" %>" class="form-control" required>

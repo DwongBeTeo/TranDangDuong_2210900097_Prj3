@@ -21,7 +21,7 @@
             <% if (request.getAttribute("error") != null) { %>
                 <p class="error"><%= request.getAttribute("error") %></p>
             <% } %>
-            <p style="text-align: center;">Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register.jsp">Đăng ký</a></p>
+            <p style="text-align: center;">Chưa có tài khoản? <a href="${pageContext.request.contextPath}/Register/register.jsp">Đăng ký</a></p>
         </div>
     </main>
     <footer>

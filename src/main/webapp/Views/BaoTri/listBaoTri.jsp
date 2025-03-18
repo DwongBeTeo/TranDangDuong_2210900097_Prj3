@@ -42,7 +42,7 @@
     <div class="table-container">
         <h2>Danh Sách Bảo Trì</h2>
         <a href="addBaoTri" class="btn btn-primary">Thêm mới bảo trì</a>
-		<a href="/TranDangDuong_2210900097_Prj3/" class="btn btn-primary">Quay về trang chủ</a>
+		<a href="/TranDangDuong_2210900097_Prj3/index.jsp" class="btn btn-primary">Quay về trang chủ</a>
         <br><br>
         
         <table>

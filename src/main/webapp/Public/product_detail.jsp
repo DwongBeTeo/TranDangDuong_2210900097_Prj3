@@ -3,8 +3,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chi tiết sản phẩm</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <title>Chi tiết sản phẩm - ${product.tenMay}</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/ProductAndDetail.css">
+    <script src="https://kit.fontawesome.com/1566d9eabd.js" crossorigin="anonymous"></script>
     <script>
     function addToCart(maMay) {
         console.log("maMay:", maMay); // Debug
@@ -34,22 +35,30 @@
 <body>
     <header>
         <h1>Cửa hàng máy móc</h1>
-        <div class="cart-icon">
-            <a href="${pageContext.request.contextPath}/CartServlet" style="color: blue;">Giỏ hàng
-                (<span id="cart-count">0</span>)
-            </a>
+        <div class="user-options">
+            <% if (session.getAttribute("maTK") == null) { %>
+                <a href="${pageContext.request.contextPath}/Public/login.jsp">Đăng nhập</a>
+                <a href="${pageContext.request.contextPath}/Public/register.jsp">Đăng ký</a>
+            <% } else { %>
+                <span>Xin chào, <%= session.getAttribute("username") %></span>
+                <a href="${pageContext.request.contextPath}/CartServlet" class="cart-link"><i class="fa-solid fa-cart-shopping"></i>Giỏ hàng <span id="cart-count"></span></a>
+                <a href="${pageContext.request.contextPath}/CustomerOrderServlet" class="history-link">Lịch sử mua hàng</a>
+                <a href="${pageContext.request.contextPath}/LogoutServlet">Đăng xuất</a>
+            <% } %>
         </div>
     </header>
     <main>
         <h2>${product.tenMay}</h2>
         <div class="product-detail">
             <img src="${pageContext.request.contextPath}/images/${product.anhMayMoc}" alt="${product.tenMay}" class="product-image">
-            <p><strong>Giá bán:</strong> ${product.giaBan} VND</p>
-            <p><strong>Tình trạng:</strong> ${product.tinhTrang}</p>
-            <p><strong>Mô tả:</strong> ${product.moTa}</p>
-            <p><strong>Ngày nhập:</strong> ${product.ngayNhap}</p>
-            <button onclick="addToCart(${product != null ? product.maMay : -1})">Thêm vào giỏ hàng</button>
-            <a href="${pageContext.request.contextPath}/products" class="back-link">Quay lại danh sách</a>
+            <div class="product-info">
+                <p><strong>Giá bán:</strong> ${product.giaBan} VND</p>
+                <p><strong>Tình trạng:</strong> ${product.tinhTrang}</p>
+                <p><strong>Mô tả:</strong> ${product.moTa}</p>
+                <p><strong>Ngày nhập:</strong> ${product.ngayNhap}</p>
+                <button onclick="addToCart(${product != null ? product.maMay : -1})" class="add-to-cart-btn">Thêm vào giỏ hàng</button>
+                <a href="${pageContext.request.contextPath}/products" class="back-link">Quay lại danh sách</a>
+            </div>
         </div>
     </main>
     <footer>

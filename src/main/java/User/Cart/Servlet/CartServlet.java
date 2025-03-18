@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -29,56 +30,80 @@ public class CartServlet extends HttpServlet {
         HttpSession session = request.getSession();
         Integer maGioHang = (Integer) session.getAttribute("maGioHang");
 
-        if (maGioHang != null) {
-            try {
-                List<CartItem> cartItems = cartDAO.getCartItems(maGioHang);
-                request.setAttribute("cartItems", cartItems);
-            } catch (SQLException e) {
-                e.printStackTrace();
-                request.setAttribute("error", "Lỗi khi lấy giỏ hàng: " + e.getMessage());
-            }
+        if (maGioHang == null) {
+            request.setAttribute("message", "Giỏ hàng trống!");
+            request.getRequestDispatcher("/Public/cart.jsp").forward(request, response);
+            return;
         }
-        request.getRequestDispatcher("/Public/cart.jsp").forward(request, response);
+
+        try {
+            List<CartItem> cartItems = cartDAO.getCartItems(maGioHang);
+            request.setAttribute("cartItems", cartItems);
+            request.getRequestDispatcher("/Public/cart.jsp").forward(request, response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Lỗi khi lấy giỏ hàng: " + e.getMessage());
+            request.getRequestDispatcher("/Public/cart.jsp").forward(request, response);
+        }
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String action = request.getParameter("action");
         HttpSession session = request.getSession();
         Integer maGioHang = (Integer) session.getAttribute("maGioHang");
+        String action = request.getParameter("action");
+
         response.setContentType("application/json");
-        JSONObject json = new JSONObject();
+        PrintWriter out = response.getWriter();
 
         try {
             if ("add".equals(action)) {
                 int maMay = Integer.parseInt(request.getParameter("maMay"));
                 int soLuong = Integer.parseInt(request.getParameter("soLuong"));
 
-                if (!cartDAO.checkStock(maMay, soLuong)) {
-                    json.put("success", false);
-                    json.put("message", "Số lượng tồn kho không đủ!");
-                } else {
-                    if (maGioHang == null) {
-                        maGioHang = cartDAO.createCart(null); // Khách vãng lai
-                        session.setAttribute("maGioHang", maGioHang);
+                if (maGioHang == null) {
+                    Integer maKH = (Integer) session.getAttribute("maKH");
+                    if (maKH == null) {
+                        out.print("{\"success\": false, \"message\": \"Vui lòng đăng nhập để thêm vào giỏ hàng!\"}");
+                        out.flush();
+                        return;
                     }
-                    cartDAO.addToCart(maGioHang, maMay, soLuong);
-
-                    // Lấy danh sách giỏ hàng để đếm số lượng
-                    List<CartItem> cartItems = cartDAO.getCartItems(maGioHang);
-                    int totalItems = 0;
-                    for (CartItem item : cartItems) {
-                        totalItems += item.getSoLuong();
-                    }
-
-                    json.put("success", true);
-                    json.put("totalItems", totalItems); // Trả về tổng số lượng sản phẩm
+                    maGioHang = cartDAO.createCart(maKH);
+                    session.setAttribute("maGioHang", maGioHang);
                 }
+
+                cartDAO.addToCart(maGioHang, maMay, soLuong);
+                List<CartItem> cartItems = cartDAO.getCartItems(maGioHang);
+                int totalItems = cartItems.stream().mapToInt(CartItem::getSoLuong).sum();
+
+                out.print("{\"success\": true, \"totalItems\": " + totalItems + "}");
+                out.flush();
+            } else if ("remove".equals(action)) {
+                int maMay = Integer.parseInt(request.getParameter("maMay"));
+
+                if (maGioHang == null) {
+                    out.print("{\"success\": false, \"message\": \"Giỏ hàng không tồn tại!\"}");
+                    out.flush();
+                    return;
+                }
+
+                cartDAO.removeFromCart(maGioHang, maMay); // Chỉ giảm 1 đơn vị
+                List<CartItem> cartItems = cartDAO.getCartItems(maGioHang);
+                int totalItems = cartItems.stream().mapToInt(CartItem::getSoLuong).sum();
+
+                out.print("{\"success\": true, \"totalItems\": " + totalItems + "}");
+                out.flush();
+            } else {
+                out.print("{\"success\": false, \"message\": \"Hành động không hợp lệ!\"}");
+                out.flush();
             }
+        } catch (SQLException e) {
+            out.print("{\"success\": false, \"message\": \"" + e.getMessage() + "\"}");
+            out.flush();
         } catch (Exception e) {
-            json.put("success", false);
-            json.put("message", "Lỗi server: " + e.getMessage());
+            e.printStackTrace();
+            out.print("{\"success\": false, \"message\": \"Lỗi hệ thống: " + e.getMessage() + "\"}");
+            out.flush();
         }
-        response.getWriter().write(json.toString());
     }
 }

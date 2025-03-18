@@ -15,7 +15,7 @@
 		<h2 class="text-center mb-4">Danh Sách Máy Móc</h2>
 
 		<a href="ThemMayMocServlet" class="btn btn-primary">Thêm Máy Móc</a>
-		<a href="/TranDangDuong_2210900097_Prj3/" class="btn btn-primary">Quay về trang chủ</a>
+		<a href="/TranDangDuong_2210900097_Prj3/index.jsp" class="btn btn-primary">Quay về trang chủ</a>
 		<!-- Hiển thị danh sách máy móc -->
 		<div class="row">
 			<%

@@ -31,7 +31,7 @@
 <body>
     <h1>Danh Sách Nhân Viên</h1>
     <a href="AddNhanVienServlet" class="btn btn-primary">Thêm Nhân Viên Mới</a>
-    <a href="/TranDangDuong_2210900097_Prj3/" class="btn btn-primary">Quay về trang chủ</a>
+    <a href="/TranDangDuong_2210900097_Prj3/index.jsp" class="btn btn-primary">Quay về trang chủ</a>
     <% if (request.getParameter("error") != null) { %>
         <p class="error">Lỗi: <%= request.getParameter("error") %></p>
     <% } %>

@@ -22,3 +22,13 @@
 .back-link {
     background-color: #008CBA;
 }
+.remove-button {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.remove-button:hover {
+    background-color: #cc0000;
+}

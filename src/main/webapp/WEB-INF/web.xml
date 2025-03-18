@@ -5,7 +5,7 @@
          version="4.0">
     <!-- Các servlet mapping nếu có -->
     <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file> 
-        <!-- <welcome-file>Register/login.jsp</welcome-file> -->
+        <welcome-file>Register/login.jsp</welcome-file> 
+         <!-- <welcome-file>Public/products.jsp</welcome-file>  -->
     </welcome-file-list>
 </web-app>

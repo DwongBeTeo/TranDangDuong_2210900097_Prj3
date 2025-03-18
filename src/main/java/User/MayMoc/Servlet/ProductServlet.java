@@ -1,6 +1,7 @@
 package User.MayMoc.Servlet;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 import com.example.constructor.MayMoc;
@@ -17,33 +18,36 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 @WebServlet("/products")
 public class ProductServlet extends HttpServlet {
-    private KhachHangMayMocDAO khachHangMayMocDAO; // Đổi tên biến
+    private KhachHangMayMocDAO khachHangMayMocDAO = new KhachHangMayMocDAO();
 
     @Override
-    public void init() throws ServletException {
-        khachHangMayMocDAO = new KhachHangMayMocDAO(); // Khởi tạo với tên mới
-    }
-
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
-        if (action != null && action.equals("detail")) {
-            try {
+        String search = request.getParameter("search");
+
+        try {
+            if ("detail".equals(action)) {
                 int maMay = Integer.parseInt(request.getParameter("id"));
-                MayMoc product = khachHangMayMocDAO.getProductById(maMay); // Dùng DAO mới
+                MayMoc product = khachHangMayMocDAO.getProductById(maMay);
                 request.setAttribute("product", product);
-                request.getRequestDispatcher("/Public/product_detail.jsp").forward(request, response);
-            } catch (NumberFormatException e) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "ID sản phẩm không hợp lệ");
+                request.getRequestDispatcher("/Public/product-detail.jsp").forward(request, response);
+            } else {
+                List<MayMoc> products;
+                if (search != null && !search.trim().isEmpty()) {
+                    products = khachHangMayMocDAO.searchProductsByName(search); // Tìm kiếm theo tên
+                } else {
+                    products = khachHangMayMocDAO.getDisplayedProducts(); // Lấy tất cả nếu không tìm kiếm
+                }
+                request.setAttribute("products", products);
+                request.getRequestDispatcher("/Public/products.jsp").forward(request, response);
             }
-        } else {
-            List<MayMoc> products = khachHangMayMocDAO.getDisplayedProducts(); // Dùng DAO mới
-            request.setAttribute("products", products);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Lỗi khi tải sản phẩm: " + e.getMessage());
             request.getRequestDispatcher("/Public/products.jsp").forward(request, response);
         }
     }
-    
-    
 }
+
+
 
